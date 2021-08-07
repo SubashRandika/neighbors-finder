@@ -10,3 +10,12 @@
 	margin: 1.5rem 0;
 	cursor: pointer;
 }
+
+.sub-title {
+	font-size: 2rem;
+	margin: 2rem 0;
+}
+
+.app-message {
+	margin-top: 1rem;
+}
