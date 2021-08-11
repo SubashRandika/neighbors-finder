@@ -1,15 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import './App.css';
+import React, { useEffect, useState } from "react";
+import "./App.css";
 
 function App() {
 	const [randomCountries, setRandomCountries] = useState([]);
 	const [neighborGroups, setNeighborGroups] = useState([]);
-	const [message, setMessage] = useState('');
+	const [message, setMessage] = useState("");
 
 	const fetchNeighbors = async (country) => {
-		const response = await fetch(
-			`https://travelbriefing.org/${country}?format=json`
-		);
+		const response = await fetch(`https://travelbriefing.org/${country}?format=json`);
 
 		const details = await response.json();
 
@@ -17,28 +15,38 @@ function App() {
 	};
 
 	async function handleFindNeighbors() {
+		const nbCountryMap = new Map();
+		const nbCouple = [];
+
 		for (let country of randomCountries) {
 			const { neighbors } = await fetchNeighbors(country.name);
-			const currentNeighbors = neighbors.map((neighbor) => neighbor.name);
-			const foundNeighbor = currentNeighbors.find((cn) =>
-				randomCountries.includes(cn)
-			);
-
-			let neighborCouple;
-
-			if (foundNeighbor) {
-				neighborCouple = `${country} ${foundNeighbor}`;
-
-				if (!neighborGroups.includes(neighborCouple)) {
-					setNeighborGroups([...neighborGroups, neighborCouple]);
-				}
-			}
+			const nbArray = neighbors.map((neighbor) => neighbor.name);
+			nbCountryMap.set(country.name, nbArray);
 		}
 
-		if (neighborGroups.length === 0) {
-			setMessage('No Groupings found');
+		nbCountryMap.forEach((values, key, map) => {
+			values.forEach((value, index) => {
+				if (map.has(value)) {
+					const foundNb = map.get(value);
+
+					if (foundNb.includes(key)) {
+						const foundIndex = nbCouple.findIndex((cp) => cp.includes(key) && cp.includes(value));
+
+						if (foundIndex === -1) {
+							const couple = `${key} ${value}`;
+							nbCouple.push(couple);
+						}
+
+						setNeighborGroups(nbCouple);
+					}
+				}
+			});
+		});
+
+		if (nbCouple.length === 0) {
+			setMessage("No Groupings found");
 		} else {
-			setMessage('Multiple mutual groupings found');
+			setMessage("Multiple mutual groupings found");
 		}
 	}
 
@@ -50,7 +58,7 @@ function App() {
 			const taken = new Array(len);
 
 			if (number > len) {
-				throw new RangeError('More elements going to take than available');
+				throw new RangeError("More elements going to take than available");
 			}
 
 			while (number--) {
@@ -64,7 +72,7 @@ function App() {
 
 		// fetch all the countries and set 10 random countries to state
 		const fetchRandomCountries = async () => {
-			const response = await fetch('https://travelbriefing.org/countries.json');
+			const response = await fetch("https://travelbriefing.org/countries.json");
 			const countries = await response.json();
 			const tenRandomCountries = await getRandom(countries, 10);
 			setRandomCountries(tenRandomCountries);
@@ -83,15 +91,11 @@ function App() {
 			<h3 className='sub-title'>Selected Countries</h3>
 			<ul>
 				{randomCountries.length === 0
-					? 'Loading...'
-					: randomCountries.map((country, index) => (
-							<li key={index}>{country?.name}</li>
-					  ))}
+					? "Loading..."
+					: randomCountries.map((country, index) => <li key={index}>{country?.name}</li>)}
 			</ul>
 			<h3 className='sub-title'>Neighbors</h3>
-			{neighborGroups.length === 0
-				? message
-				: neighborGroups.map((group) => <p>{group}</p>)}
+			{neighborGroups.length === 0 ? message : neighborGroups.map((group, i) => <p key={i}>{group}</p>)}
 		</div>
 	);
 }
